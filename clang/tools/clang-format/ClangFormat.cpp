@@ -441,7 +441,7 @@ static bool format(StringRef FileName) {
 } // namespace clang
 
 static void PrintVersion(raw_ostream &OS) {
-  OS << clang::getClangToolFullVersion("clang-format") << '\n';
+  OS << clang::getClangToolFullVersion("haiku-format") << '\n';
 }
 
 // Dump the configuration.
