@@ -2622,8 +2622,14 @@ llvm::Expected<FormatStyle> getStyle(StringRef StyleName, StringRef FileName,
   FilesToLookFor.push_back(".haiku-format");
   FilesToLookFor.push_back("_haiku-format");
 
-  for (StringRef Directory = Path; !Directory.empty();
+  bool Haiku = false;
+  for (StringRef Directory = Path; !Haiku;
        Directory = llvm::sys::path::parent_path(Directory)) {
+
+    if (Directory.empty()) {
+      Haiku = true;
+      Directory = "/boot/home/config/settings";
+    }
 
     auto Status = FS->status(Directory);
     if (!Status ||
