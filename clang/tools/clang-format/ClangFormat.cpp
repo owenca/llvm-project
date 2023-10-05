@@ -540,7 +540,7 @@ static bool format(StringRef FileName) {
 } // namespace clang
 
 static void PrintVersion(raw_ostream &OS) {
-  OS << clang::getClangToolFullVersion("clang-format") << '\n';
+  OS << clang::getClangToolFullVersion("haiku-format") << '\n';
 }
 
 // Dump the configuration.
@@ -595,6 +595,9 @@ int main(int argc, const char **argv) {
     cl::PrintHelpMessage();
     return 0;
   }
+
+  if (FallbackStyle == clang::format::DefaultFallbackStyle)
+    clang::format::Haiku = true;
 
   if (DumpConfig)
     return dumpConfig();

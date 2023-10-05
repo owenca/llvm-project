@@ -3059,9 +3059,23 @@ private:
 
 void TokenAnnotator::setCommentLineLevels(
     SmallVectorImpl<AnnotatedLine *> &Lines) const {
+  AnnotatedLine *NextCommentLine = nullptr;
   const AnnotatedLine *NextNonCommentLine = nullptr;
   for (AnnotatedLine *Line : llvm::reverse(Lines)) {
     assert(Line->First);
+
+    if (Haiku) {
+      if (Line->isComment()) {
+        NextCommentLine = Line;
+      } else {
+        if (NextCommentLine && NextCommentLine->First->NewlinesBefore == 1 &&
+            NextCommentLine->First->OriginalColumn ==
+                Line->First->OriginalColumn + 4) {
+          NextCommentLine->Level = Line->Level + 1;
+        }
+        NextCommentLine = nullptr;
+      }
+    }
 
     // If the comment is currently aligned with the line immediately following
     // it, that's probably intentional and we should keep it.
@@ -3125,6 +3139,19 @@ void TokenAnnotator::annotate(AnnotatedLine &Line) {
 
   Line.First->SpacesRequiredBefore = 1;
   Line.First->CanBreakBefore = Line.First->MustBreakBefore;
+
+  if (!Haiku)
+    return;
+
+  static bool Comment = false;
+  if (Line.First->is(tok::comment)) {
+    Comment = true;
+  } else if (Comment) {
+    Comment = false;
+  } else if (Line.Level == 0 && !Line.First->IsFirst &&
+             Line.MightBeFunctionDecl && Line.mightBeFunctionDefinition()) {
+    Line.First->NewlinesBefore = 3;
+  }
 }
 
 // This function heuristically determines whether 'Current' starts the name of a
@@ -4988,6 +5015,10 @@ bool TokenAnnotator::mustBreakBefore(const AnnotatedLine &Line,
     default:
       break;
     }
+  }
+  if (Haiku && Left.NestingLevel == 0 &&
+      Left.isOneOf(TT_CtorInitializerColon, TT_CtorInitializerComma)) {
+    return true;
   }
   if (Style.PackConstructorInitializers == FormatStyle::PCIS_Never) {
     if (Style.BreakConstructorInitializers == FormatStyle::BCIS_BeforeColon &&

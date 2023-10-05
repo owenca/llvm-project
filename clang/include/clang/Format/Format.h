@@ -4932,6 +4932,8 @@ extern const char *DefaultFormatStyle;
 /// Different builds can modify the value to the preferred styles.
 extern const char *DefaultFallbackStyle;
 
+extern bool Haiku;
+
 /// Construct a FormatStyle based on ``StyleName``.
 ///
 /// ``StyleName`` can take several forms:

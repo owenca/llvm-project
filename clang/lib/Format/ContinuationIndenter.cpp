@@ -891,6 +891,10 @@ unsigned ContinuationIndenter::addTokenOnNewLine(LineState &State,
   }
 
   State.Column = getNewLineColumn(State);
+  if (Haiku && State.Line->startsWith(tok::kw_for) && PreviousNonComment &&
+      PreviousNonComment->is(tok::semi)) {
+    State.Column -= State.Column % 4;
+  }
 
   // Add Penalty proportional to amount of whitespace away from FirstColumn
   // This tends to penalize several lines that are far-right indented,
@@ -1429,10 +1433,13 @@ unsigned ContinuationIndenter::moveStateToNextToken(LineState &State,
     //     : First(...), ...
     //       Next(...)
     //       ^ line up here.
-    CurrentState.Indent = State.Column + (Style.BreakConstructorInitializers ==
-                                                  FormatStyle::BCIS_BeforeComma
-                                              ? 0
-                                              : 2);
+    CurrentState.Indent =
+        State.Column +
+        (Haiku ? Style.BreakConstructorInitializers !=
+                     FormatStyle::BCIS_AfterColon
+         : Style.BreakConstructorInitializers == FormatStyle::BCIS_BeforeComma
+             ? 0
+             : 2);
     CurrentState.NestedBlockIndent = CurrentState.Indent;
     if (Style.PackConstructorInitializers > FormatStyle::PCIS_BinPack) {
       CurrentState.AvoidBinPacking = true;

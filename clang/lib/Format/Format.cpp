@@ -807,7 +807,7 @@ template <> struct MappingTraits<FormatStyle> {
     StringRef BasedOnStyle;
     if (IO.outputting()) {
       StringRef Styles[] = {"LLVM",   "Google", "Chromium", "Mozilla",
-                            "WebKit", "GNU",    "Microsoft"};
+                            "WebKit", "GNU",    "Haiku",    "Microsoft"};
       for (StringRef StyleName : Styles) {
         FormatStyle PredefinedStyle;
         if (getPredefinedStyle(StyleName, Style.Language, &PredefinedStyle) &&
@@ -1586,6 +1586,40 @@ FormatStyle getLLVMStyle(FormatStyle::LanguageKind Language) {
   return LLVMStyle;
 }
 
+FormatStyle getHaikuStyle(FormatStyle::LanguageKind Language) {
+  FormatStyle HaikuStyle = getLLVMStyle(Language);
+
+  HaikuStyle.AccessModifierOffset = -4;
+  HaikuStyle.AlignAfterOpenBracket = FormatStyle::BAS_DontAlign;
+  HaikuStyle.AlignEscapedNewlines = FormatStyle::ENAS_DontAlign;
+  HaikuStyle.AlignOperands = FormatStyle::OAS_DontAlign;
+  HaikuStyle.AlignTrailingComments.Kind = FormatStyle::TCAS_Never;
+  HaikuStyle.AllowAllParametersOfDeclarationOnNextLine = false;
+  HaikuStyle.AllowShortFunctionsOnASingleLine = FormatStyle::SFS_InlineOnly;
+  HaikuStyle.AlwaysBreakAfterReturnType = FormatStyle::RTBS_TopLevelDefinitions;
+  HaikuStyle.BraceWrapping.AfterCaseLabel = true;
+  HaikuStyle.BraceWrapping.AfterClass = true;
+  HaikuStyle.BraceWrapping.AfterExternBlock = true;
+  HaikuStyle.BraceWrapping.AfterFunction = true;
+  HaikuStyle.BraceWrapping.BeforeCatch = true;
+  HaikuStyle.BreakBeforeBinaryOperators = FormatStyle::BOS_All;
+  HaikuStyle.BreakBeforeBraces = FormatStyle::BS_Custom;
+  HaikuStyle.ColumnLimit = 100;
+  HaikuStyle.IndentCaseLabels = true;
+  HaikuStyle.IndentWidth = 4;
+  HaikuStyle.InsertNewlineAtEOF = true;
+  HaikuStyle.LineEnding = FormatStyle::LE_LF;
+  HaikuStyle.MaxEmptyLinesToKeep = 2;
+  HaikuStyle.PointerAlignment = FormatStyle::PAS_Left;
+  HaikuStyle.RemoveParentheses = FormatStyle::RPS_ReturnStatement;
+  HaikuStyle.SpaceAfterCStyleCast = true;
+  HaikuStyle.SpaceAfterTemplateKeyword = false;
+  HaikuStyle.TabWidth = 4;
+  HaikuStyle.UseTab = FormatStyle::UT_Always;
+
+  return HaikuStyle;
+}
+
 FormatStyle getGoogleStyle(FormatStyle::LanguageKind Language) {
   if (Language == FormatStyle::LK_TextProto) {
     FormatStyle GoogleStyle = getGoogleStyle(FormatStyle::LK_Proto);
@@ -1894,6 +1928,8 @@ bool getPredefinedStyle(StringRef Name, FormatStyle::LanguageKind Language,
                         FormatStyle *Style) {
   if (Name.equals_insensitive("llvm"))
     *Style = getLLVMStyle(Language);
+  else if (Name == "Haiku")
+    *Style = getHaikuStyle(Language);
   else if (Name.equals_insensitive("chromium"))
     *Style = getChromiumStyle(Language);
   else if (Name.equals_insensitive("mozilla"))
@@ -3818,11 +3854,11 @@ LangOptions getFormattingLangOpts(const FormatStyle &Style) {
 const char *StyleOptionHelpDescription =
     "Set coding style. <string> can be:\n"
     "1. A preset: LLVM, GNU, Google, Chromium, Microsoft,\n"
-    "   Mozilla, WebKit.\n"
+    "   Haiku, Mozilla, WebKit.\n"
     "2. 'file' to load style configuration from a\n"
-    "   .clang-format file in one of the parent directories\n"
+    "   .haiku-format file in one of the parent directories\n"
     "   of the source file (for stdin, see --assume-filename).\n"
-    "   If no .clang-format file is found, falls back to\n"
+    "   If no .haiku-format file is found, falls back to\n"
     "   --fallback-style.\n"
     "   --style=file is the default.\n"
     "3. 'file:<format_file_path>' to explicitly specify\n"
@@ -3886,7 +3922,9 @@ FormatStyle::LanguageKind guessLanguage(StringRef FileName, StringRef Code) {
 // Update StyleOptionHelpDescription above when changing this.
 const char *DefaultFormatStyle = "file";
 
-const char *DefaultFallbackStyle = "LLVM";
+const char *DefaultFallbackStyle = "Haiku";
+
+bool Haiku = false;
 
 llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>>
 loadAndParseConfigFile(StringRef ConfigFile, llvm::vfs::FileSystem *FS,
@@ -3910,7 +3948,7 @@ llvm::Expected<FormatStyle> getStyle(StringRef StyleName, StringRef FileName,
 
   FormatStyle FallbackStyle = getNoStyle();
   if (!getPredefinedStyle(FallbackStyleName, Style.Language, &FallbackStyle))
-    return make_string_error("Invalid fallback style \"" + FallbackStyleName);
+    return make_string_error("Invalid fallback style: " + FallbackStyleName);
 
   llvm::SmallVector<std::unique_ptr<llvm::MemoryBuffer>, 1>
       ChildFormatTextToApply;
@@ -3967,15 +4005,11 @@ llvm::Expected<FormatStyle> getStyle(StringRef StyleName, StringRef FileName,
   // Reset possible inheritance
   Style.InheritsParentConfig = false;
 
-  // Look for .clang-format/_clang-format file in the file's parent directories.
+  // Look for .clang-format/.haiku-format file in the file's parent directories.
   SmallString<128> UnsuitableConfigFiles;
   SmallString<128> Path(FileName);
   if (std::error_code EC = FS->makeAbsolute(Path))
     return make_string_error(EC.message());
-
-  llvm::SmallVector<std::string, 2> FilesToLookFor;
-  FilesToLookFor.push_back(".clang-format");
-  FilesToLookFor.push_back("_clang-format");
 
   auto dropDiagnosticHandler = [](const llvm::SMDiagnostic &, void *) {};
 
@@ -3998,10 +4032,11 @@ llvm::Expected<FormatStyle> getStyle(StringRef StyleName, StringRef FileName,
       continue;
     }
 
-    for (const auto &F : FilesToLookFor) {
+    {
       SmallString<128> ConfigFile(Directory);
 
-      llvm::sys::path::append(ConfigFile, F);
+      llvm::sys::path::append(ConfigFile,
+                              Haiku ? ".haiku-format" : ".clang-format");
       LLVM_DEBUG(llvm::dbgs() << "Trying " << ConfigFile << "...\n");
 
       Status = FS->status(ConfigFile.str());
@@ -4039,12 +4074,6 @@ llvm::Expected<FormatStyle> getStyle(StringRef StyleName, StringRef FileName,
         Style.InheritsParentConfig = false;
 
         ChildFormatTextToApply.emplace_back(std::move(*Text));
-
-        // Breaking out of the inner loop, since we don't want to parse
-        // .clang-format AND _clang-format, if both exist. Then we continue the
-        // inner loop (parent directories) in search for the parent
-        // configuration.
-        break;
       }
     }
   }
