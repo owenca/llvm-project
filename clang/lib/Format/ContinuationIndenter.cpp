@@ -1434,12 +1434,10 @@ unsigned ContinuationIndenter::moveStateToNextToken(LineState &State,
     //       Next(...)
     //       ^ line up here.
     CurrentState.Indent =
-        State.Column +
-        (Haiku ? Style.BreakConstructorInitializers !=
-                     FormatStyle::BCIS_AfterColon
-         : Style.BreakConstructorInitializers == FormatStyle::BCIS_BeforeComma
-             ? 0
-             : 2);
+        State.Column + (Haiku || Style.BreakConstructorInitializers ==
+                                     FormatStyle::BCIS_BeforeComma
+                            ? 0
+                            : 2);
     CurrentState.NestedBlockIndent = CurrentState.Indent;
     if (Style.PackConstructorInitializers > FormatStyle::PCIS_BinPack) {
       CurrentState.AvoidBinPacking = true;
