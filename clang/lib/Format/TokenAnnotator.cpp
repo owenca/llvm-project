@@ -5016,10 +5016,11 @@ bool TokenAnnotator::mustBreakBefore(const AnnotatedLine &Line,
       break;
     }
   }
-  if (Haiku && Left.NestingLevel == 0 &&
-      Left.isOneOf(TT_CtorInitializerColon, TT_CtorInitializerComma)) {
+
+  // Also break after Haiku CtorInitializerColon to put it on its own line.
+  if (Haiku && Left.is(TT_CtorInitializerColon))
     return true;
-  }
+
   if (Style.PackConstructorInitializers == FormatStyle::PCIS_Never) {
     if (Style.BreakConstructorInitializers == FormatStyle::BCIS_BeforeColon &&
         (Left.is(TT_CtorInitializerComma) ||

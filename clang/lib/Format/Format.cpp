@@ -1609,6 +1609,7 @@ FormatStyle getHaikuStyle(FormatStyle::LanguageKind Language) {
   Style.InsertNewlineAtEOF = true;
   Style.LineEnding = FormatStyle::LE_LF;
   Style.MaxEmptyLinesToKeep = 2;
+  Style.PackConstructorInitializers = FormatStyle::PCIS_Never;
   Style.PointerAlignment = FormatStyle::PAS_Left;
   Style.RemoveParentheses = FormatStyle::RPS_ReturnStatement;
   Style.SpaceAfterCStyleCast = true;

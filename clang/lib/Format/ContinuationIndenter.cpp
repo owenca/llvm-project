@@ -1434,8 +1434,9 @@ unsigned ContinuationIndenter::moveStateToNextToken(LineState &State,
     //       Next(...)
     //       ^ line up here.
     CurrentState.Indent =
-        State.Column + (Haiku || Style.BreakConstructorInitializers ==
-                                     FormatStyle::BCIS_BeforeComma
+        State.Column + (Haiku || // Haiku CtorInitializerColon on its own line
+                                Style.BreakConstructorInitializers ==
+                                    FormatStyle::BCIS_BeforeComma
                             ? 0
                             : 2);
     CurrentState.NestedBlockIndent = CurrentState.Indent;
