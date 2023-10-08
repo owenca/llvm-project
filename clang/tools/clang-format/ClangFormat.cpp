@@ -596,9 +596,6 @@ int main(int argc, const char **argv) {
     return 0;
   }
 
-  if (FallbackStyle == clang::format::DefaultFallbackStyle)
-    clang::format::Haiku = true;
-
   if (DumpConfig)
     return dumpConfig();
 

@@ -1587,37 +1587,38 @@ FormatStyle getLLVMStyle(FormatStyle::LanguageKind Language) {
 }
 
 FormatStyle getHaikuStyle(FormatStyle::LanguageKind Language) {
-  FormatStyle HaikuStyle = getLLVMStyle(Language);
+  FormatStyle Style = getLLVMStyle(Language);
+  Style.AccessModifierOffset = -4;
+  Style.AlignAfterOpenBracket = FormatStyle::BAS_DontAlign;
+  Style.AlignEscapedNewlines = FormatStyle::ENAS_DontAlign;
+  Style.AlignOperands = FormatStyle::OAS_DontAlign;
+  Style.AlignTrailingComments.Kind = FormatStyle::TCAS_Never;
+  Style.AllowAllParametersOfDeclarationOnNextLine = false;
+  Style.AllowShortFunctionsOnASingleLine = FormatStyle::SFS_InlineOnly;
+  Style.AlwaysBreakAfterReturnType = FormatStyle::RTBS_TopLevelDefinitions;
+  Style.BraceWrapping.AfterCaseLabel = true;
+  Style.BraceWrapping.AfterClass = true;
+  Style.BraceWrapping.AfterExternBlock = true;
+  Style.BraceWrapping.AfterFunction = true;
+  Style.BraceWrapping.BeforeCatch = true;
+  Style.BreakBeforeBinaryOperators = FormatStyle::BOS_All;
+  Style.BreakBeforeBraces = FormatStyle::BS_Custom;
+  Style.ColumnLimit = 100;
+  Style.IndentCaseLabels = true;
+  Style.IndentWidth = 4;
+  Style.InsertNewlineAtEOF = true;
+  Style.LineEnding = FormatStyle::LE_LF;
+  Style.MaxEmptyLinesToKeep = 2;
+  Style.PointerAlignment = FormatStyle::PAS_Left;
+  Style.RemoveParentheses = FormatStyle::RPS_ReturnStatement;
+  Style.SpaceAfterCStyleCast = true;
+  Style.SpaceAfterTemplateKeyword = false;
+  Style.TabWidth = 4;
+  Style.UseTab = FormatStyle::UT_Always;
 
-  HaikuStyle.AccessModifierOffset = -4;
-  HaikuStyle.AlignAfterOpenBracket = FormatStyle::BAS_DontAlign;
-  HaikuStyle.AlignEscapedNewlines = FormatStyle::ENAS_DontAlign;
-  HaikuStyle.AlignOperands = FormatStyle::OAS_DontAlign;
-  HaikuStyle.AlignTrailingComments.Kind = FormatStyle::TCAS_Never;
-  HaikuStyle.AllowAllParametersOfDeclarationOnNextLine = false;
-  HaikuStyle.AllowShortFunctionsOnASingleLine = FormatStyle::SFS_InlineOnly;
-  HaikuStyle.AlwaysBreakAfterReturnType = FormatStyle::RTBS_TopLevelDefinitions;
-  HaikuStyle.BraceWrapping.AfterCaseLabel = true;
-  HaikuStyle.BraceWrapping.AfterClass = true;
-  HaikuStyle.BraceWrapping.AfterExternBlock = true;
-  HaikuStyle.BraceWrapping.AfterFunction = true;
-  HaikuStyle.BraceWrapping.BeforeCatch = true;
-  HaikuStyle.BreakBeforeBinaryOperators = FormatStyle::BOS_All;
-  HaikuStyle.BreakBeforeBraces = FormatStyle::BS_Custom;
-  HaikuStyle.ColumnLimit = 100;
-  HaikuStyle.IndentCaseLabels = true;
-  HaikuStyle.IndentWidth = 4;
-  HaikuStyle.InsertNewlineAtEOF = true;
-  HaikuStyle.LineEnding = FormatStyle::LE_LF;
-  HaikuStyle.MaxEmptyLinesToKeep = 2;
-  HaikuStyle.PointerAlignment = FormatStyle::PAS_Left;
-  HaikuStyle.RemoveParentheses = FormatStyle::RPS_ReturnStatement;
-  HaikuStyle.SpaceAfterCStyleCast = true;
-  HaikuStyle.SpaceAfterTemplateKeyword = false;
-  HaikuStyle.TabWidth = 4;
-  HaikuStyle.UseTab = FormatStyle::UT_Always;
+  Haiku = true;
 
-  return HaikuStyle;
+  return Style;
 }
 
 FormatStyle getGoogleStyle(FormatStyle::LanguageKind Language) {

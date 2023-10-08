@@ -18,8 +18,6 @@ namespace {
 class HaikuTest : public FormatTestBase {};
 
 TEST_F(HaikuTest, BreakConstructorInitializers) {
-  Haiku = true;
-
   FormatStyle Style = getHaikuStyle();
 
   verifyFormat("Foo::Foo(int32 param)\n"
