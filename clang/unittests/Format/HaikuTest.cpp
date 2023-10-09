@@ -98,6 +98,40 @@ TEST_F(HaikuTest, CommentsBelowCode) {
                   "\t// endian; we always return the value in host endian.\n");
 }
 
+TEST_F(HaikuTest, SeparateFunctionDefinitions) {
+  verifyHaiku("void\n"
+              "f()\n"
+              "{\n"
+              "}\n"
+              "\n"
+              "\n"
+              "void\n"
+              "g()\n"
+              "{\n"
+              "} // g\n"
+              "\n"
+              "\n"
+              "void\n"
+              "h()\n"
+              "{\n"
+              "}\n"
+              "// comment\n"
+              "void\n"
+              "foo()\n"
+              "{\n"
+              "}\n",
+              "void f() {}\n"
+              "void g() {\n"
+              "}\t// g\n"
+              "\n"
+              "void\n"
+              "h() {}\n"
+              "// comment\n"
+              "void foo()\n"
+              "{\n"
+              "}");
+}
+
 } // namespace
 } // namespace test
 } // namespace format

@@ -1407,10 +1407,6 @@ private:
         Tok->setType(TT_TrailingReturnArrow);
       }
       break;
-    case tok::eof:
-      if (Style.InsertNewlineAtEOF && Tok->NewlinesBefore == 0)
-        Tok->NewlinesBefore = 1;
-      break;
     default:
       break;
     }
@@ -3138,20 +3134,28 @@ void TokenAnnotator::annotate(AnnotatedLine &Line) {
   else if (Line.startsWith(TT_ObjCProperty))
     Line.Type = LT_ObjCProperty;
 
-  Line.First->SpacesRequiredBefore = 1;
-  Line.First->CanBreakBefore = Line.First->MustBreakBefore;
+  auto *First = Line.First;
+  First->SpacesRequiredBefore = 1;
+  First->CanBreakBefore = First->MustBreakBefore;
+
+  if (First->is(tok::eof)) {
+    if (First->NewlinesBefore == 0 && Style.InsertNewlineAtEOF)
+      First->NewlinesBefore = 1;
+    return;
+  }
 
   if (!Haiku)
     return;
 
+  // Use exactly 2 empty lines to separate Haiku top-level function definitions.
   static bool Comment = false;
-  if (Line.First->is(tok::comment)) {
+  if (First->is(tok::comment)) {
     Comment = true;
   } else if (Comment) {
     Comment = false;
-  } else if (Line.Level == 0 && !Line.First->IsFirst &&
-             Line.MightBeFunctionDecl && Line.mightBeFunctionDefinition()) {
-    Line.First->NewlinesBefore = 3;
+  } else if (Line.Level == 0 && !First->IsFirst && Line.MightBeFunctionDecl &&
+             Line.mightBeFunctionDefinition()) {
+    First->NewlinesBefore = 3;
   }
 }
 
