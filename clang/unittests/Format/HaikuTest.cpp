@@ -8,7 +8,8 @@
 
 #include "FormatTestBase.h"
 
-#define verifyHaiku(...) _verifyHaikuFormat(__FILE__, __LINE__, __VA_ARGS__)
+#define verifyHaiku(...) _verifyHaiku(__FILE__, __LINE__, __VA_ARGS__)
+#define verifyFormatted(...) _verifyFormatted(__FILE__, __LINE__, __VA_ARGS__)
 
 namespace clang {
 namespace format {
@@ -16,23 +17,28 @@ namespace test {
 namespace {
 
 class HaikuTest : public FormatTestBase {
-  const FormatStyle Style{getHaikuStyle()};
+  FormatStyle Style;
+
+public:
+  HaikuTest() : Style(getHaikuStyle()) { Style.ColumnLimit = 60; }
 
 protected:
-  void _verifyHaikuFormat(const char *File, int Line, StringRef Expected,
-                          StringRef Code,
-                          const std::vector<tooling::Range> &Ranges = {}) {
+  void _verifyHaiku(const char *File, int Line, StringRef Expected,
+                    StringRef Code, bool MessUp = true) {
     testing::ScopedTrace t(File, Line, testing::Message() << Code.str());
-    EXPECT_EQ(Expected.str(),
-              format(Expected, Style, SC_ExpectComplete, Ranges))
+    EXPECT_EQ(Expected.str(), format(Expected, Style))
         << "Expected code is not stable";
-    EXPECT_EQ(Expected.str(), format(Code, Style, SC_ExpectComplete, Ranges));
-    EXPECT_EQ(Expected.str(),
-              format(messUp(Code), Style, SC_ExpectComplete, Ranges));
+    EXPECT_EQ(Expected.str(), format(Code, Style));
+    if (MessUp)
+      EXPECT_EQ(Expected.str(), format(messUp(Code), Style));
   }
 
-  void _verifyHaikuFormat(const char *File, int Line, StringRef Code) {
-    _verifyHaikuFormat(File, Line, Code, Code);
+  void _verifyHaiku(const char *File, int Line, StringRef Code) {
+    _verifyHaiku(File, Line, Code, Code);
+  }
+
+  void _verifyFormatted(const char *File, int Line, StringRef Code) {
+    _verifyHaiku(File, Line, Code, Code, /*MessUp=*/false);
   }
 };
 
@@ -77,6 +83,19 @@ TEST_F(HaikuTest, BreakConstructorInitializers) {
               "\n"
               "BreakCtorInitializers::BreakCtorInitializers(int i, int j)\n"
               ": a(i), b(j) {}\n");
+}
+
+TEST_F(HaikuTest, ContinuationIndent) {
+  verifyHaiku("for (int32 i = 0; ar->FindMessage(str, i, &msg) == B_OK;\n"
+              "\ti++) {\n"
+              "\tf(i);\n"
+              "}\n");
+}
+
+TEST_F(HaikuTest, CommentsBelowCode) {
+  verifyFormatted("return B_BENDIAN_TO_HOST_INT32(*(uint32*) &color);\n"
+                  "\t// rgb_color is always in rgba format, no matter what\n"
+                  "\t// endian; we always return the value in host endian.\n");
 }
 
 } // namespace

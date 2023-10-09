@@ -891,6 +891,8 @@ unsigned ContinuationIndenter::addTokenOnNewLine(LineState &State,
   }
 
   State.Column = getNewLineColumn(State);
+
+  // Remove the extra space after Haiku `for` loop continuation indent tabs.
   if (Haiku && State.Line->startsWith(tok::kw_for) && PreviousNonComment &&
       PreviousNonComment->is(tok::semi)) {
     State.Column -= State.Column % 4;

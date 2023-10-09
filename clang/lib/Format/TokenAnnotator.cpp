@@ -3064,6 +3064,7 @@ void TokenAnnotator::setCommentLineLevels(
   for (AnnotatedLine *Line : llvm::reverse(Lines)) {
     assert(Line->First);
 
+    // Indented comments immediately below a code line are for the code above.
     if (Haiku) {
       if (Line->isComment()) {
         NextCommentLine = Line;
