@@ -132,6 +132,10 @@ TEST_F(HaikuTest, SeparateFunctionDefinitions) {
               "}");
 }
 
+TEST_F(HaikuTest, NoSpaceBetweenNewAndLParen) {
+  verifyHaiku("return new(std::nothrow) BView(data);\n");
+}
+
 } // namespace
 } // namespace test
 } // namespace format

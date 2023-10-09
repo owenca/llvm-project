@@ -1600,7 +1600,6 @@ FormatStyle getHaikuStyle(FormatStyle::LanguageKind Language) {
   Style.BraceWrapping.AfterClass = true;
   Style.BraceWrapping.AfterExternBlock = true;
   Style.BraceWrapping.AfterFunction = true;
-  Style.BraceWrapping.BeforeCatch = true;
   Style.BreakBeforeBinaryOperators = FormatStyle::BOS_All;
   Style.BreakBeforeBraces = FormatStyle::BS_Custom;
   Style.ColumnLimit = 100;
