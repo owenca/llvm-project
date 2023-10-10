@@ -136,6 +136,26 @@ TEST_F(HaikuTest, NoSpaceBetweenNewAndLParen) {
   verifyHaiku("return new(std::nothrow) BView(data);\n");
 }
 
+TEST_F(HaikuTest, InsertAndRemoveBraces) {
+  verifyHaiku("while (a) {\n"
+              "\tif (b)\n"
+              "\t\tc();\n"
+              "}\n",
+              "while (a)\n"
+              "\tif (b)\n"
+              "\t\tc();");
+
+  verifyHaiku("while (a) {\n"
+              "\tif (b)\n"
+              "\t\tc();\n"
+              "}\n",
+              "while (a) {\n"
+              "\tif (b) {\n"
+              "\t\tc();"
+              "\t}\n"
+              "}");
+}
+
 } // namespace
 } // namespace test
 } // namespace format

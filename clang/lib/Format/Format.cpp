@@ -1605,11 +1605,13 @@ FormatStyle getHaikuStyle(FormatStyle::LanguageKind Language) {
   Style.ColumnLimit = 100;
   Style.IndentCaseLabels = true;
   Style.IndentWidth = 4;
+  Style.InsertBraces = true;
   Style.InsertNewlineAtEOF = true;
   Style.LineEnding = FormatStyle::LE_LF;
   Style.MaxEmptyLinesToKeep = 2;
   Style.PackConstructorInitializers = FormatStyle::PCIS_Never;
   Style.PointerAlignment = FormatStyle::PAS_Left;
+  Style.RemoveBracesLLVM = true;
   Style.RemoveParentheses = FormatStyle::RPS_ReturnStatement;
   Style.SpaceAfterCStyleCast = true;
   Style.SpaceAfterTemplateKeyword = false;
@@ -3945,7 +3947,9 @@ llvm::Expected<FormatStyle> getStyle(StringRef StyleName, StringRef FileName,
                                      bool AllowUnknownOptions) {
   if (!FS)
     FS = llvm::vfs::getRealFileSystem().get();
-  FormatStyle Style = getLLVMStyle(guessLanguage(FileName, Code));
+  FormatStyle Style = (FallbackStyleName == DefaultFallbackStyle
+                           ? getHaikuStyle
+                           : getLLVMStyle)(guessLanguage(FileName, Code));
 
   FormatStyle FallbackStyle = getNoStyle();
   if (!getPredefinedStyle(FallbackStyleName, Style.Language, &FallbackStyle))
