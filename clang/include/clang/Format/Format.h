@@ -4739,8 +4739,7 @@ private:
 FormatStyle getLLVMStyle(
     FormatStyle::LanguageKind Language = FormatStyle::LanguageKind::LK_Cpp);
 
-FormatStyle getHaikuStyle(
-    FormatStyle::LanguageKind Language = FormatStyle::LanguageKind::LK_Cpp);
+FormatStyle getHaikuStyle();
 
 /// Returns a format style complying with one of Google's style guides:
 /// http://google-styleguide.googlecode.com/svn/trunk/cppguide.xml.

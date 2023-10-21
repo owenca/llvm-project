@@ -1586,8 +1586,8 @@ FormatStyle getLLVMStyle(FormatStyle::LanguageKind Language) {
   return LLVMStyle;
 }
 
-FormatStyle getHaikuStyle(FormatStyle::LanguageKind Language) {
-  FormatStyle Style = getLLVMStyle(Language);
+FormatStyle getHaikuStyle() {
+  FormatStyle Style = getLLVMStyle();
   Style.AccessModifierOffset = -4;
   Style.AlignAfterOpenBracket = FormatStyle::BAS_DontAlign;
   Style.AlignEscapedNewlines = FormatStyle::ENAS_DontAlign;
@@ -1932,7 +1932,7 @@ bool getPredefinedStyle(StringRef Name, FormatStyle::LanguageKind Language,
   if (Name.equals_insensitive("llvm"))
     *Style = getLLVMStyle(Language);
   else if (Name == "Haiku")
-    *Style = getHaikuStyle(Language);
+    *Style = getHaikuStyle();
   else if (Name.equals_insensitive("chromium"))
     *Style = getChromiumStyle(Language);
   else if (Name.equals_insensitive("mozilla"))
@@ -3947,9 +3947,9 @@ llvm::Expected<FormatStyle> getStyle(StringRef StyleName, StringRef FileName,
                                      bool AllowUnknownOptions) {
   if (!FS)
     FS = llvm::vfs::getRealFileSystem().get();
-  FormatStyle Style = (FallbackStyleName == DefaultFallbackStyle
-                           ? getHaikuStyle
-                           : getLLVMStyle)(guessLanguage(FileName, Code));
+  FormatStyle Style = FallbackStyleName == DefaultFallbackStyle
+                          ? getHaikuStyle()
+                          : getLLVMStyle(guessLanguage(FileName, Code));
 
   FormatStyle FallbackStyle = getNoStyle();
   if (!getPredefinedStyle(FallbackStyleName, Style.Language, &FallbackStyle))
