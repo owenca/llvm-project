@@ -1593,6 +1593,7 @@ FormatStyle getHaikuStyle() {
   Style.AlignEscapedNewlines = FormatStyle::ENAS_DontAlign;
   Style.AlignOperands = FormatStyle::OAS_DontAlign;
   Style.AlignTrailingComments.Kind = FormatStyle::TCAS_Never;
+  Style.AllowAllArgumentsOnNextLine = false;
   Style.AllowAllParametersOfDeclarationOnNextLine = false;
   Style.AllowShortFunctionsOnASingleLine = FormatStyle::SFS_InlineOnly;
   Style.AlwaysBreakAfterReturnType = FormatStyle::RTBS_TopLevelDefinitions;

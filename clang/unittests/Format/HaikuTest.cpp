@@ -156,6 +156,14 @@ TEST_F(HaikuTest, InsertAndRemoveBraces) {
               "}");
 }
 
+TEST_F(HaikuTest, BinPackArguments) {
+  verifyHaiku("BString f(reinterpret_cast<char*>(addressof(*o)),\n"
+              "\tdistance(o, r));\n");
+
+  verifyHaiku("BString f{reinterpret_cast<char*>(addressof(*o)),\n"
+              "\tdistance(o, r)};\n");
+}
+
 } // namespace
 } // namespace test
 } // namespace format
