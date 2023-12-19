@@ -12,6 +12,7 @@
 ///
 //===----------------------------------------------------------------------===//
 
+#include "ClangFormatIgnore.h"
 #include "clang/Basic/Diagnostic.h"
 #include "clang/Basic/DiagnosticOptions.h"
 #include "clang/Basic/FileManager.h"
@@ -618,11 +619,14 @@ int main(int argc, const char **argv) {
   unsigned FileNo = 1;
   bool Error = false;
   for (const auto &FileName : FileNames) {
+    const bool IsSTDIN = FileName == "-";
+    if (!IsSTDIN && clang::format::isIgnored(FileName))
+      continue;
     if (Verbose) {
       errs() << "Formatting [" << FileNo++ << "/" << FileNames.size() << "] "
              << FileName << "\n";
     }
-    Error |= clang::format::format(FileName, FileName == "-");
+    Error |= clang::format::format(FileName, IsSTDIN);
   }
   return Error ? 1 : 0;
 }

@@ -2,6 +2,7 @@ set(LLVM_LINK_COMPONENTS support)
 
 add_clang_tool(clang-format
   ClangFormat.cpp
+  ClangFormatIgnore.cpp
   )
 
 set(CLANG_FORMAT_LIB_DEPS
