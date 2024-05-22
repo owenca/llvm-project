@@ -1637,7 +1637,10 @@ FormatStyle getHaikuStyle() {
   Style.PointerAlignment = FormatStyle::PAS_Left;
   Style.RemoveBracesLLVM = true;
   Style.RemoveParentheses = FormatStyle::RPS_ReturnStatement;
+  Style.RemoveSemicolon = true;
   Style.SpaceAfterTemplateKeyword = false;
+  Style.SpaceBeforeParens = FormatStyle::SBPO_Custom;
+  Style.SpaceBeforeParensOptions.AfterPlacementOperator = false;
   Style.TabWidth = 4;
   Style.UseTab = FormatStyle::UT_Always;
 

@@ -4445,9 +4445,6 @@ bool TokenAnnotator::spaceRequiredBefore(const AnnotatedLine &Line,
     return true;
 
   if (Style.isCpp()) {
-    // Haiku has no space between `new` and `(`.
-    if (Haiku && Left.is(tok::kw_new) && Right.is(tok::l_paren))
-      return false;
     if (Left.is(TT_OverloadedOperator) &&
         Right.isOneOf(TT_TemplateOpener, TT_TemplateCloser)) {
       return true;
