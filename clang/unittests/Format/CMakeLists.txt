@@ -24,6 +24,7 @@ add_clang_unittest(FormatTests
   FormatTestVerilog.cpp
   FormatTokenSourceTest.cpp
   FormatReplacementTest.cpp
+  HaikuTest.cpp
   IntegerLiteralSeparatorTest.cpp
   MacroCallReconstructorTest.cpp
   MacroExpanderTest.cpp

@@ -3125,9 +3125,24 @@ private:
 
 void TokenAnnotator::setCommentLineLevels(
     SmallVectorImpl<AnnotatedLine *> &Lines) const {
+  AnnotatedLine *NextCommentLine = nullptr;
   const AnnotatedLine *NextNonCommentLine = nullptr;
   for (AnnotatedLine *Line : llvm::reverse(Lines)) {
     assert(Line->First);
+
+    // Indented comments immediately below a code line are for the code above.
+    if (Haiku) {
+      if (Line->isComment()) {
+        NextCommentLine = Line;
+      } else {
+        if (NextCommentLine && NextCommentLine->First->NewlinesBefore == 1 &&
+            NextCommentLine->First->OriginalColumn ==
+                Line->First->OriginalColumn + 4) {
+          NextCommentLine->Level = Line->Level + 1;
+        }
+        NextCommentLine = nullptr;
+      }
+    }
 
     // If the comment is currently aligned with the line immediately following
     // it, that's probably intentional and we should keep it.
@@ -3278,6 +3293,20 @@ void TokenAnnotator::annotate(AnnotatedLine &Line) {
   if (First->is(tok::eof) && First->NewlinesBefore == 0 &&
       Style.InsertNewlineAtEOF) {
     First->NewlinesBefore = 1;
+  }
+
+  if (!Haiku)
+    return;
+
+  // Use exactly 2 empty lines to separate Haiku top-level function definitions.
+  static bool Comment = false;
+  if (First->is(tok::comment)) {
+    Comment = true;
+  } else if (Comment) {
+    Comment = false;
+  } else if (Line.Level == 0 && !First->IsFirst && Line.MightBeFunctionDecl &&
+             Line.mightBeFunctionDefinition()) {
+    First->NewlinesBefore = 3;
   }
 }
 
@@ -4416,6 +4445,9 @@ bool TokenAnnotator::spaceRequiredBefore(const AnnotatedLine &Line,
     return true;
 
   if (Style.isCpp()) {
+    // Haiku has no space between `new` and `(`.
+    if (Haiku && Left.is(tok::kw_new) && Right.is(tok::l_paren))
+      return false;
     if (Left.is(TT_OverloadedOperator) &&
         Right.isOneOf(TT_TemplateOpener, TT_TemplateCloser)) {
       return true;
@@ -5191,6 +5223,11 @@ bool TokenAnnotator::mustBreakBefore(const AnnotatedLine &Line,
       break;
     }
   }
+
+  // Also break after Haiku CtorInitializerColon to put it on its own line.
+  if (Haiku && Left.is(TT_CtorInitializerColon))
+    return true;
+
   if (Style.PackConstructorInitializers == FormatStyle::PCIS_Never) {
     if (Style.BreakConstructorInitializers == FormatStyle::BCIS_BeforeColon &&
         (Left.is(TT_CtorInitializerComma) ||

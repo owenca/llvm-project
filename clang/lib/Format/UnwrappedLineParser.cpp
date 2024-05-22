@@ -2649,7 +2649,8 @@ void UnwrappedLineParser::keepAncestorBraces() {
   if (!Style.RemoveBracesLLVM)
     return;
 
-  const int MaxNestingLevels = 2;
+  const int MaxNestingLevels = Haiku ? 1 // Haiku only removes innermost braces.
+                                     : 2;
   const int Size = NestedTooDeep.size();
   if (Size >= MaxNestingLevels)
     NestedTooDeep[Size - MaxNestingLevels] = true;

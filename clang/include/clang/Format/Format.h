@@ -4967,6 +4967,8 @@ private:
 FormatStyle getLLVMStyle(
     FormatStyle::LanguageKind Language = FormatStyle::LanguageKind::LK_Cpp);
 
+FormatStyle getHaikuStyle();
+
 /// Returns a format style complying with one of Google's style guides:
 /// http://google-styleguide.googlecode.com/svn/trunk/cppguide.xml.
 /// http://google-styleguide.googlecode.com/svn/trunk/javascriptguide.xml.
@@ -5159,6 +5161,8 @@ extern const char *DefaultFormatStyle;
 /// The suggested predefined style to use as the fallback style in ``getStyle``.
 /// Different builds can modify the value to the preferred styles.
 extern const char *DefaultFallbackStyle;
+
+extern bool Haiku;
 
 /// Construct a FormatStyle based on ``StyleName``.
 ///

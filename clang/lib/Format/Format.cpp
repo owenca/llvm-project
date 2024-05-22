@@ -818,8 +818,9 @@ template <> struct MappingTraits<FormatStyle> {
 
     StringRef BasedOnStyle;
     if (IO.outputting()) {
-      StringRef Styles[] = {"LLVM",   "Google", "Chromium",  "Mozilla",
-                            "WebKit", "GNU",    "Microsoft", "clang-format"};
+      StringRef Styles[] = {"LLVM",    "Google",    "Chromium",
+                            "Mozilla", "Haiku",     "WebKit",
+                            "GNU",     "Microsoft", "clang-format"};
       for (StringRef StyleName : Styles) {
         FormatStyle PredefinedStyle;
         if (getPredefinedStyle(StyleName, Style.Language, &PredefinedStyle) &&
@@ -1608,6 +1609,44 @@ FormatStyle getLLVMStyle(FormatStyle::LanguageKind Language) {
   return LLVMStyle;
 }
 
+FormatStyle getHaikuStyle() {
+  FormatStyle Style = getLLVMStyle();
+  Style.AccessModifierOffset = -4;
+  Style.AlignAfterOpenBracket = FormatStyle::BAS_DontAlign;
+  Style.AlignEscapedNewlines = FormatStyle::ENAS_DontAlign;
+  Style.AlignOperands = FormatStyle::OAS_DontAlign;
+  Style.AlignTrailingComments.Kind = FormatStyle::TCAS_Never;
+  Style.AllowAllArgumentsOnNextLine = false;
+  Style.AllowAllParametersOfDeclarationOnNextLine = false;
+  Style.AllowShortFunctionsOnASingleLine = FormatStyle::SFS_InlineOnly;
+  Style.AlwaysBreakAfterReturnType = FormatStyle::RTBS_TopLevelDefinitions;
+  Style.BraceWrapping.AfterCaseLabel = true;
+  Style.BraceWrapping.AfterClass = true;
+  Style.BraceWrapping.AfterExternBlock = true;
+  Style.BraceWrapping.AfterFunction = true;
+  Style.BreakBeforeBinaryOperators = FormatStyle::BOS_All;
+  Style.BreakBeforeBraces = FormatStyle::BS_Custom;
+  Style.ColumnLimit = 100;
+  Style.IndentCaseLabels = true;
+  Style.IndentWidth = 4;
+  Style.InsertBraces = true;
+  Style.InsertNewlineAtEOF = true;
+  Style.LineEnding = FormatStyle::LE_LF;
+  Style.MaxEmptyLinesToKeep = 2;
+  Style.PackConstructorInitializers = FormatStyle::PCIS_Never;
+  Style.PointerAlignment = FormatStyle::PAS_Left;
+  Style.RemoveBracesLLVM = true;
+  Style.RemoveParentheses = FormatStyle::RPS_ReturnStatement;
+  Style.SpaceAfterCStyleCast = true;
+  Style.SpaceAfterTemplateKeyword = false;
+  Style.TabWidth = 4;
+  Style.UseTab = FormatStyle::UT_Always;
+
+  Haiku = true;
+
+  return Style;
+}
+
 FormatStyle getGoogleStyle(FormatStyle::LanguageKind Language) {
   if (Language == FormatStyle::LK_TextProto) {
     FormatStyle GoogleStyle = getGoogleStyle(FormatStyle::LK_Proto);
@@ -1926,6 +1965,8 @@ bool getPredefinedStyle(StringRef Name, FormatStyle::LanguageKind Language,
                         FormatStyle *Style) {
   if (Name.equals_insensitive("llvm"))
     *Style = getLLVMStyle(Language);
+  else if (Name == "Haiku")
+    *Style = getHaikuStyle();
   else if (Name.equals_insensitive("chromium"))
     *Style = getChromiumStyle(Language);
   else if (Name.equals_insensitive("mozilla"))
@@ -3849,11 +3890,11 @@ LangOptions getFormattingLangOpts(const FormatStyle &Style) {
 const char *StyleOptionHelpDescription =
     "Set coding style. <string> can be:\n"
     "1. A preset: LLVM, GNU, Google, Chromium, Microsoft,\n"
-    "   Mozilla, WebKit.\n"
+    "   Haiku, Mozilla, WebKit.\n"
     "2. 'file' to load style configuration from a\n"
-    "   .clang-format file in one of the parent directories\n"
+    "   .haiku-format file in one of the parent directories\n"
     "   of the source file (for stdin, see --assume-filename).\n"
-    "   If no .clang-format file is found, falls back to\n"
+    "   If no .haiku-format file is found, falls back to\n"
     "   --fallback-style.\n"
     "   --style=file is the default.\n"
     "3. 'file:<format_file_path>' to explicitly specify\n"
@@ -3917,7 +3958,9 @@ FormatStyle::LanguageKind guessLanguage(StringRef FileName, StringRef Code) {
 // Update StyleOptionHelpDescription above when changing this.
 const char *DefaultFormatStyle = "file";
 
-const char *DefaultFallbackStyle = "LLVM";
+const char *DefaultFallbackStyle = "Haiku";
+
+bool Haiku = false;
 
 llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>>
 loadAndParseConfigFile(StringRef ConfigFile, llvm::vfs::FileSystem *FS,
@@ -3935,7 +3978,9 @@ llvm::Expected<FormatStyle> getStyle(StringRef StyleName, StringRef FileName,
                                      StringRef FallbackStyleName,
                                      StringRef Code, llvm::vfs::FileSystem *FS,
                                      bool AllowUnknownOptions) {
-  FormatStyle Style = getLLVMStyle(guessLanguage(FileName, Code));
+  FormatStyle Style = FallbackStyleName == DefaultFallbackStyle
+                          ? getHaikuStyle()
+                          : getLLVMStyle(guessLanguage(FileName, Code));
   FormatStyle FallbackStyle = getNoStyle();
   if (!getPredefinedStyle(FallbackStyleName, Style.Language, &FallbackStyle))
     return make_string_error("Invalid fallback style: " + FallbackStyleName);
@@ -4015,11 +4060,7 @@ llvm::Expected<FormatStyle> getStyle(StringRef StyleName, StringRef FileName,
     }
   };
 
-  // Look for .clang-format/_clang-format file in the file's parent directories.
-  llvm::SmallVector<std::string, 2> FilesToLookFor;
-  FilesToLookFor.push_back(".clang-format");
-  FilesToLookFor.push_back("_clang-format");
-
+  // Look for .clang-format/.haiku-format file in the file's parent directories.
   SmallString<128> UnsuitableConfigFiles;
   for (StringRef Directory = Path; !Directory.empty();
        Directory = llvm::sys::path::parent_path(Directory)) {
@@ -4029,10 +4070,11 @@ llvm::Expected<FormatStyle> getStyle(StringRef StyleName, StringRef FileName,
       continue;
     }
 
-    for (const auto &F : FilesToLookFor) {
+    {
       SmallString<128> ConfigFile(Directory);
 
-      llvm::sys::path::append(ConfigFile, F);
+      llvm::sys::path::append(ConfigFile,
+                              Haiku ? ".haiku-format" : ".clang-format");
       LLVM_DEBUG(llvm::dbgs() << "Trying " << ConfigFile << "...\n");
 
       Status = FS->status(ConfigFile);
@@ -4071,12 +4113,6 @@ llvm::Expected<FormatStyle> getStyle(StringRef StyleName, StringRef FileName,
       Style.InheritsParentConfig = false;
 
       ChildFormatTextToApply.emplace_back(std::move(*Text));
-
-      // Breaking out of the inner loop, since we don't want to parse
-      // .clang-format AND _clang-format, if both exist. Then we continue the
-      // outer loop (parent directories) in search for the parent
-      // configuration.
-      break;
     }
   }
 

@@ -69,9 +69,9 @@ static cl::opt<std::string>
 static cl::opt<std::string>
     FallbackStyle("fallback-style",
                   cl::desc("The name of the predefined style used as a\n"
-                           "fallback in case clang-format is invoked with\n"
-                           "-style=file, but can not find the .clang-format\n"
-                           "file to use. Defaults to 'LLVM'.\n"
+                           "fallback in case haiku-format is invoked with\n"
+                           "-style=file, but can not find the .haiku-format\n"
+                           "file to use. Defaults to 'Haiku'.\n"
                            "Use -fallback-style=none to skip formatting."),
                   cl::init(clang::format::DefaultFallbackStyle),
                   cl::cat(ClangFormatCategory));
@@ -79,9 +79,9 @@ static cl::opt<std::string>
 static cl::opt<std::string> AssumeFileName(
     "assume-filename",
     cl::desc("Set filename used to determine the language and to find\n"
-             ".clang-format file.\n"
+             ".haiku-format file.\n"
              "Only used when reading from stdin.\n"
-             "If this is not passed, the .clang-format file is searched\n"
+             "If this is not passed, the .haiku-format file is searched\n"
              "relative to the current working directory when reading stdin.\n"
              "Unrecognized filenames are treated as C++.\n"
              "supported:\n"
@@ -542,7 +542,7 @@ static bool format(StringRef FileName) {
 } // namespace clang
 
 static void PrintVersion(raw_ostream &OS) {
-  OS << clang::getClangToolFullVersion("clang-format") << '\n';
+  OS << clang::getClangToolFullVersion("haiku-format") << '\n';
 }
 
 // Dump the configuration.

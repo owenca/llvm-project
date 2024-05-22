@@ -961,6 +961,12 @@ unsigned ContinuationIndenter::addTokenOnNewLine(LineState &State,
 
   State.Column = getNewLineColumn(State);
 
+  // Remove the extra space after Haiku `for` loop continuation indent tabs.
+  if (Haiku && State.Line->startsWith(tok::kw_for) && PreviousNonComment &&
+      PreviousNonComment->is(tok::semi)) {
+    State.Column -= State.Column % 4;
+  }
+
   // Add Penalty proportional to amount of whitespace away from FirstColumn
   // This tends to penalize several lines that are far-right indented,
   // and prefers a line-break prior to such a block, e.g:
@@ -1534,10 +1540,12 @@ unsigned ContinuationIndenter::moveStateToNextToken(LineState &State,
     //     : First(...), ...
     //       Next(...)
     //       ^ line up here.
-    CurrentState.Indent = State.Column + (Style.BreakConstructorInitializers ==
-                                                  FormatStyle::BCIS_BeforeComma
-                                              ? 0
-                                              : 2);
+    CurrentState.Indent =
+        State.Column + (Haiku || // Haiku CtorInitializerColon on its own line
+                                Style.BreakConstructorInitializers ==
+                                    FormatStyle::BCIS_BeforeComma
+                            ? 0
+                            : 2);
     CurrentState.NestedBlockIndent = CurrentState.Indent;
     if (Style.PackConstructorInitializers > FormatStyle::PCIS_BinPack) {
       CurrentState.AvoidBinPacking = true;
