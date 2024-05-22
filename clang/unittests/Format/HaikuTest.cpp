@@ -93,7 +93,7 @@ TEST_F(HaikuTest, ContinuationIndent) {
 }
 
 TEST_F(HaikuTest, CommentsBelowCode) {
-  verifyFormatted("return B_BENDIAN_TO_HOST_INT32(*(uint32*) &color);\n"
+  verifyFormatted("return B_BENDIAN_TO_HOST_INT32(*(uint32*)&color);\n"
                   "\t// rgb_color is always in rgba format, no matter what\n"
                   "\t// endian; we always return the value in host endian.\n");
 }
