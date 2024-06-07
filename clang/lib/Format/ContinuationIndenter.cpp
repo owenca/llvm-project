@@ -961,12 +961,6 @@ unsigned ContinuationIndenter::addTokenOnNewLine(LineState &State,
 
   State.Column = getNewLineColumn(State);
 
-  // Remove the extra space after Haiku `for` loop continuation indent tabs.
-  if (Haiku && State.Line->startsWith(tok::kw_for) && PreviousNonComment &&
-      PreviousNonComment->is(tok::semi)) {
-    State.Column -= State.Column % 4;
-  }
-
   // Add Penalty proportional to amount of whitespace away from FirstColumn
   // This tends to penalize several lines that are far-right indented,
   // and prefers a line-break prior to such a block, e.g:
@@ -1700,7 +1694,7 @@ void ContinuationIndenter::moveStatePastFakeLParens(LineState &State,
         (!Previous || Previous->isNot(tok::kw_return) ||
          (Style.Language != FormatStyle::LK_Java && PrecedenceLevel > 0)) &&
         (Style.AlignAfterOpenBracket != FormatStyle::BAS_DontAlign ||
-         PrecedenceLevel != prec::Comma || Current.NestingLevel == 0)) {
+         PrecedenceLevel > prec::Comma || Current.NestingLevel == 0)) {
       NewParenState.Indent = std::max(
           std::max(State.Column, NewParenState.Indent), CurrentState.LastSpace);
     }
