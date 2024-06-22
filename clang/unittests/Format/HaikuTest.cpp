@@ -50,8 +50,7 @@ TEST_F(HaikuTest, BreakConstructorInitializers) {
               "{\n"
               "}\n");
 
-  verifyHaiku("class BreakCtorInitializers\n"
-              "{\n"
+  verifyHaiku("class BreakCtorInitializers {\n"
               "private:\n"
               "\tint a, b;\n"
               "\n"

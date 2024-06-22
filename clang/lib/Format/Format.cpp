@@ -1621,7 +1621,6 @@ FormatStyle getHaikuStyle() {
   Style.AllowShortFunctionsOnASingleLine = FormatStyle::SFS_InlineOnly;
   Style.AlwaysBreakAfterReturnType = FormatStyle::RTBS_TopLevelDefinitions;
   Style.BraceWrapping.AfterCaseLabel = true;
-  Style.BraceWrapping.AfterClass = true;
   Style.BraceWrapping.AfterExternBlock = true;
   Style.BraceWrapping.AfterFunction = true;
   Style.BreakBeforeBinaryOperators = FormatStyle::BOS_All;
