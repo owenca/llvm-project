@@ -20,7 +20,10 @@ class HaikuTest : public FormatTestBase {
   FormatStyle Style;
 
 public:
-  HaikuTest() : Style(getHaikuStyle()) { Style.ColumnLimit = 60; }
+  HaikuTest() : Style(getHaikuStyle()) {
+    Haiku = true;
+    Style.ColumnLimit = 60;
+  }
 
 protected:
   void _verifyHaiku(const char *File, int Line, StringRef Expected,

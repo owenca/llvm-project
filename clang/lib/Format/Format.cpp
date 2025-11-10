@@ -889,6 +889,10 @@ template <> struct MappingTraits<FormatStyle> {
         if (getPredefinedStyle(StyleName, Style.Language, &PredefinedStyle) &&
             Style == PredefinedStyle) {
           BasedOnStyle = StyleName;
+
+          if (StyleName == "Haiku")
+            clang::format::Haiku = true;
+
           break;
         }
       }
@@ -1762,8 +1766,6 @@ FormatStyle getHaikuStyle() {
   Style.SpaceBeforeParensOptions.AfterPlacementOperator = false;
   Style.TabWidth = 4;
   Style.UseTab = FormatStyle::UT_Always;
-
-  Haiku = true;
 
   return Style;
 }
