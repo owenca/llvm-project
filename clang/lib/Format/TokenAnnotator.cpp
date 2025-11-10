@@ -3593,9 +3593,24 @@ private:
 
 void TokenAnnotator::setCommentLineLevels(
     SmallVectorImpl<AnnotatedLine *> &Lines) const {
+  AnnotatedLine *NextCommentLine = nullptr;
   const AnnotatedLine *NextNonCommentLine = nullptr;
   for (AnnotatedLine *Line : reverse(Lines)) {
     assert(Line->First);
+
+    // Indented comments immediately below a code line are for the code above.
+    if (Haiku) {
+      if (Line->isComment()) {
+        NextCommentLine = Line;
+      } else {
+        if (NextCommentLine && NextCommentLine->First->NewlinesBefore == 1 &&
+            NextCommentLine->First->OriginalColumn ==
+                Line->First->OriginalColumn + 4) {
+          NextCommentLine->Level = Line->Level + 1;
+        }
+        NextCommentLine = nullptr;
+      }
+    }
 
     // If the comment is currently aligned with the line immediately following
     // it, that's probably intentional and we should keep it.
@@ -3764,6 +3779,20 @@ void TokenAnnotator::annotate(AnnotatedLine &Line) {
   auto *First = Line.First;
   First->SpacesRequiredBefore = 1;
   First->CanBreakBefore = First->MustBreakBefore;
+
+  if (!Haiku)
+    return;
+
+  // Use exactly 2 empty lines to separate Haiku top-level function definitions.
+  static bool Comment = false;
+  if (First->is(tok::comment)) {
+    Comment = true;
+  } else if (Comment) {
+    Comment = false;
+  } else if (Line.Level == 0 && !First->IsFirst && Line.MightBeFunctionDecl &&
+             Line.mightBeFunctionDefinition()) {
+    First->NewlinesBefore = 3;
+  }
 }
 
 // This function heuristically determines whether 'Current' starts the name of a
@@ -5853,6 +5882,11 @@ bool TokenAnnotator::mustBreakBefore(const AnnotatedLine &Line,
       break;
     }
   }
+
+  // Also break after Haiku CtorInitializerColon to put it on its own line.
+  if (Haiku && Left.is(TT_CtorInitializerColon))
+    return true;
+
   if (Style.PackConstructorInitializers == FormatStyle::PCIS_Never) {
     if (Style.BreakConstructorInitializers == FormatStyle::BCIS_BeforeColon &&
         (Left.is(TT_CtorInitializerComma) ||
