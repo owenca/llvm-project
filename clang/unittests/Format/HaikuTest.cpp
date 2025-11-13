@@ -166,6 +166,21 @@ TEST_F(HaikuTest, BinPackArguments) {
               "\tdistance(o, r)};\n");
 }
 
+TEST_F(HaikuTest, Layout) {
+  verifyHaiku("BLayoutBuilder::Group<>(this, B_VERTICAL)\n"
+              "\t.AddGroup(B_HORIZONTAL)\n"
+              "\t\t.SetInsets(B_USE_WINDOW_SPACING,\n"
+              "\t\t\tB_USE_WINDOW_SPACING, B_USE_WINDOW_SPACING, 0)\n"
+              "\t\t.Add(fSettingsView)\n"
+              "\t\t.End()\n"
+              "\t.Add(new BSeparatorView(B_HORIZONTAL))\n"
+              "\t.AddGroup(B_HORIZONTAL)\n"
+              "\t\t.Add(fDefaultsButton)\n"
+              "\t\t.Add(fRevertButton)\n"
+              "\t\t.AddGlue()\n"
+              "\t\t.End();\n");
+}
+
 } // namespace
 } // namespace test
 } // namespace format

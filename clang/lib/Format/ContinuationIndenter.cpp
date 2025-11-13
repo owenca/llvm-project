@@ -1103,6 +1103,36 @@ unsigned ContinuationIndenter::addTokenOnNewLine(LineState &State,
   if (NextNonComment->isMemberAccess()) {
     if (CurrentState.CallContinuation == 0)
       CurrentState.CallContinuation = State.Column;
+    // Indent lines between .Add...() and .End() in Haiku Layout API.
+    if (Haiku && Current.isNot(tok::comment) &&
+        NextNonComment->is(tok::period)) {
+      auto LayoutCall = [](const FormatToken *Tok) -> StringRef {
+        if (!Tok)
+          return {};
+        const auto *Next = Tok->Next;
+        if (!(Next && Next->is(tok::l_paren)))
+          return {};
+        Next = Next->MatchingParen;
+        if (!Next)
+          return {};
+        assert(Next->is(tok::r_paren));
+        Next = Next->getNextNonComment();
+        if (Next && Next->is(tok::period))
+          return Tok->TokenText;
+        return {};
+      };
+      auto Text = LayoutCall(NextNonComment->Next);
+      auto &Column = CurrentState.CallContinuation;
+      const auto Width = Style.ContinuationIndentWidth;
+      if (Text == "End") {
+        assert(Column >= Width);
+        Column -= Width;
+      } else if (Text.consume_front("Add") &&
+                 (Text == "Group" || Text == "Grid" || Text == "Split" ||
+                  Text == "Cards")) {
+        Column += Width;
+      }
+    }
   } else if (NextNonComment->is(TT_SelectorName)) {
     if (!CurrentState.ObjCSelectorNameFound) {
       if (NextNonComment->LongestObjCSelectorName == 0) {
